@@ -46,16 +46,16 @@ func TestBrokenWriter(t *testing.T) {
 	ctx := t.Context()
 
 	var wg sync.WaitGroup
+	var appErr error
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := app.Run(ctx); err != nil {
-			require.ErrorIs(t, err, ErrMockWrite)
-		}
+		appErr = app.Run(ctx)
 	}()
 
 	wg.Wait()
+	require.ErrorIs(t, appErr, ErrMockWrite)
 }
 
 func TestBrokenReader(t *testing.T) {

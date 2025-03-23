@@ -3,7 +3,6 @@ package appcli_test
 import (
 	appcli "bank-acc-interest/pkgs/app-cli"
 	"bytes"
-	"log/slog"
 	"strings"
 	"testing"
 
@@ -16,13 +15,12 @@ func TestScan(t *testing.T) {
 	t.Run("single-line input", func(t *testing.T) {
 		t.Parallel()
 
-		var logBuffer bytes.Buffer
-		logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
+		var outputBuf bytes.Buffer
 
 		want := "lorem ipsum"
 		input := want + "\n"
 
-		cli := appcli.NewAppCLI(strings.NewReader(input), nil, logger)
+		cli := appcli.NewAppCLI(strings.NewReader(input), &outputBuf, discardLogger)
 
 		have, err := cli.Scan()
 		require.NoError(t, err)
@@ -32,11 +30,10 @@ func TestScan(t *testing.T) {
 	t.Run("multi-line input", func(t *testing.T) {
 		t.Parallel()
 
-		var logBuffer bytes.Buffer
-		logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
+		var outputBuf bytes.Buffer
 
 		input := "first\nsecond\n"
-		cli := appcli.NewAppCLI(strings.NewReader(input), nil, logger)
+		cli := appcli.NewAppCLI(strings.NewReader(input), &outputBuf, discardLogger)
 
 		have, err := cli.Scan()
 		require.NoError(t, err)
@@ -46,10 +43,9 @@ func TestScan(t *testing.T) {
 	t.Run("empty input", func(t *testing.T) {
 		t.Parallel()
 
-		var logBuffer bytes.Buffer
-		logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
+		var outputBuf bytes.Buffer
 
-		cli := appcli.NewAppCLI(strings.NewReader(""), nil, logger)
+		cli := appcli.NewAppCLI(strings.NewReader(""), &outputBuf, discardLogger)
 
 		have, err := cli.Scan()
 		require.NoError(t, err)
@@ -59,11 +55,9 @@ func TestScan(t *testing.T) {
 	t.Run("reader error", func(t *testing.T) {
 		t.Parallel()
 
-		var logBuffer bytes.Buffer
-		logger := slog.New(slog.NewTextHandler(&logBuffer, nil))
+		var outputBuf bytes.Buffer
 
-		cli := appcli.NewAppCLI(&BrokenReader{}, nil, logger)
-
+		cli := appcli.NewAppCLI(&BrokenReader{}, &outputBuf, discardLogger)
 		_, err := cli.Scan()
 		require.ErrorIs(t, err, ErrMockRead)
 	})

@@ -2,6 +2,7 @@ package appcli
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 )
@@ -17,16 +18,11 @@ func NewAppCLI(r io.Reader, w io.Writer, l *slog.Logger) *AppCLI {
 }
 
 func (a *AppCLI) Run(ctx context.Context) error {
-	if err := a.Println("what is your name?"); err != nil {
-		return err
-	}
+	menu := &Menu{a}
 
-	name, err := a.Scan()
+	err := menu.Run(ctx)
 	if err != nil {
-		return err
-	}
-
-	if err := a.Println("hello, " + name); err != nil {
+		err = fmt.Errorf("failed to run main menu: %w", err)
 		return err
 	}
 
