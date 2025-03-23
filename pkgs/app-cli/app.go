@@ -1,12 +1,9 @@
 package appcli
 
 import (
-	"bufio"
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
-	"strings"
 )
 
 type AppCLI struct {
@@ -20,20 +17,16 @@ func NewAppCLI(r io.Reader, w io.Writer, l *slog.Logger) *AppCLI {
 }
 
 func (a *AppCLI) Run(ctx context.Context) error {
-	_, err := a.Writer.Write([]byte("what is your name?\n"))
-	if err != nil {
-		err = fmt.Errorf("failed to prompt for name: %w", err)
+	if err := a.Println("what is your name?"); err != nil {
 		return err
 	}
 
-	scanner := bufio.NewScanner(a.Reader)
-	scanner.Scan()
-
-	name := strings.TrimSpace(scanner.Text())
-
-	_, err = a.Writer.Write(fmt.Appendf([]byte{}, "hello, %s\n", name))
+	name, err := a.Scan()
 	if err != nil {
-		err = fmt.Errorf("failed to print 'hello, <name>': %w", err)
+		return err
+	}
+
+	if err := a.Println("hello, " + name); err != nil {
 		return err
 	}
 

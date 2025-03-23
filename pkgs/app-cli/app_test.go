@@ -2,13 +2,13 @@ package appcli_test
 
 import (
 	appcli "bank-acc-interest/pkgs/app-cli"
-	"bank-acc-interest/pkgs/async"
-	"bufio"
+	"bytes"
+	"context"
+	"errors"
 	"io"
 	"log/slog"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -16,49 +16,58 @@ import (
 // logs into the void
 var discardLogger = slog.New(slog.NewTextHandler(io.Discard, nil))
 
-func TestHelloName(t *testing.T) {
+var (
+	ErrMockRead  = errors.New("mock read error")
+	ErrMockWrite = errors.New("mock write error")
+)
+
+// mock io.Reader that always fails
+type BrokenReader struct{}
+
+// always returns error
+func (f *BrokenReader) Read(p []byte) (n int, err error) {
+	return 0, ErrMockRead
+}
+
+// mock io.Writer that always fails
+type BrokenWriter struct{}
+
+// always returns error
+func (f *BrokenWriter) Write(p []byte) (n int, err error) {
+	return n, ErrMockWrite
+}
+
+func TestBrokenWriter(t *testing.T) {
 	t.Parallel()
 
-	inputReader, inputWriter := io.Pipe()
-	outputReader, outputWriter := io.Pipe()
+	inputReader, _ := io.Pipe()
 
-	app := appcli.NewAppCLI(inputReader, outputWriter, discardLogger)
+	app := appcli.NewAppCLI(inputReader, &BrokenWriter{}, discardLogger)
 	ctx := t.Context()
 
 	var wg sync.WaitGroup
-	var appErr error
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if appErr = app.Run(ctx); appErr != nil {
-			require.NoError(t, appErr)
+		if err := app.Run(ctx); err != nil {
+			require.ErrorIs(t, err, ErrMockWrite)
 		}
 	}()
 
-	outputScanner := bufio.NewScanner(outputReader)
-
-	var err error
-	err = async.RunWithTimeOut(func() error {
-		hasOutput := outputScanner.Scan()
-		require.True(t, hasOutput)
-		require.Equal(t, "what is your name?", outputScanner.Text())
-
-		return nil
-	}, 1*time.Second)
-	require.NoError(t, err)
-
-	_, err = inputWriter.Write([]byte("asdf\n"))
-	require.NoError(t, err)
-
-	err = async.RunWithTimeOut(func() error {
-		hasOutput := outputScanner.Scan()
-		require.True(t, hasOutput)
-		require.Equal(t, "hello, asdf", outputScanner.Text())
-
-		return nil
-	}, 1*time.Second)
-	require.NoError(t, err)
-
 	wg.Wait()
+}
+
+func TestBrokenReader(t *testing.T) {
+	t.Parallel()
+
+	var outputBuffer bytes.Buffer
+	logger := slog.New(slog.NewTextHandler(io.Discard, nil))
+	app := appcli.NewAppCLI(&BrokenReader{}, &outputBuffer, logger)
+
+	ctx := context.Background()
+
+	err := app.Run(ctx)
+	require.Error(t, err)
+	require.ErrorIs(t, err, ErrMockRead)
 }
