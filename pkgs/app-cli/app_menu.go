@@ -9,24 +9,21 @@ type Menu struct {
 	*AppCLI
 }
 
-const PromptMenu = `
-Welcome to AwesomeGIC Bank! What would you like to do?
-[T] Input transactions
-[I] Define interest rules
-[P] Print statement
-[Q] Quit`
-
-const ExitMessage = `
-Thank you for banking with AwesomeGIC Bank.
-Have a nice day!
-`
+const (
+	MsgWelcomePrompt      = "Welcome to AwesomeGIC Bank! What would you like to do?"
+	MsgAnythingElsePrompt = "\nIs there anything else you'd like to do?"
+	MsgMenuItems          = "[T] Input transactions\n[I] Define interest rules\n[P] Print statement\n[Q] Quit"
+	MsgExitThankyou       = "Thank you for banking with AwesomeGIC Bank.\nHave a nice day!"
+)
 
 func (a *Menu) Run(ctx context.Context) error {
+	pretext := MsgWelcomePrompt
 
-	for keepLooping := true; keepLooping; {
-		err := a.Print(PromptMenu)
+	for keepLooping := true; keepLooping; pretext = MsgAnythingElsePrompt {
+		prompt := fmt.Sprintf("%s\n%s\n", pretext, MsgMenuItems)
+		err := a.Println(prompt)
 		if err != nil {
-			err = fmt.Errorf("failed to prompt main menu: %w", err)
+			err = fmt.Errorf("failed to print prompt: %w", err)
 			return err
 		}
 
@@ -37,8 +34,20 @@ func (a *Menu) Run(ctx context.Context) error {
 		}
 
 		switch input {
+		case "t", "T":
+			inputTx := &InputTransactions{a.AppCLI}
+
+			err = inputTx.Run(ctx)
+			if err != nil {
+				err = fmt.Errorf("failed to run input transaction: %w", err)
+				return err
+			}
+		case "i", "I":
+			// do nothing
+		case "p", "P":
+			// do nothing
 		case "q", "Q":
-			err = a.Println(ExitMessage)
+			err = a.Println(MsgExitThankyou)
 			if err != nil {
 				err = fmt.Errorf("failed to print exit message: %w", err)
 				return err

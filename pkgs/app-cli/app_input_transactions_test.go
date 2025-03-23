@@ -6,12 +6,11 @@ import (
 	"io"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestE2EMenu(t *testing.T) {
+func TestE2EInputTransactions(t *testing.T) {
 	// NOTE: sleep for short duration so that app.Run() can write to buffer
 	inputReader, inputWriter := io.Pipe()
 
@@ -19,7 +18,7 @@ func TestE2EMenu(t *testing.T) {
 	var outBuf bytes.Buffer
 
 	app := appcli.NewAppCLI(inputReader, &outBuf, discardLogger)
-	menu := appcli.Menu{app}
+	menu := appcli.InputTransactions{app}
 	ctx := t.Context()
 
 	var wg sync.WaitGroup
@@ -32,31 +31,21 @@ func TestE2EMenu(t *testing.T) {
 		appErr = menu.Run(ctx)
 	}()
 
-	welcomeMessage := `Welcome to AwesomeGIC Bank! What would you like to do?
-[T] Input transactions
-[I] Define interest rules
-[P] Print statement
-[Q] Quit`
+	inputTxPrompt := `Please enter transaction details in <Date> <Account> <Type> <Amount> format
+(or enter blank to go back to main menu):
+`
 
 	stutter()
-	require.Contains(t, outBuf.String(), welcomeMessage)
+	require.Contains(t, outBuf.String(), inputTxPrompt)
 	outBuf.Reset()
 
 	stutter()
-	_, err = inputWriter.Write([]byte("q\n"))
+	_, err = inputWriter.Write([]byte("20230626 AC001 W 100.00\n"))
 	require.NoError(t, err)
 
-	thankyouMessage := `Thank you for banking with AwesomeGIC Bank.
-Have a nice day!`
-
 	stutter()
-	require.Contains(t, outBuf.String(), thankyouMessage)
+	require.Contains(t, outBuf.String(), "Account: AC001\n| Date     | Txn Id      | Type | Amount |\n| 20230626 | 20230626-02 | W    | 100.00 |\n")
 	outBuf.Reset()
 
 	wg.Wait()
-}
-
-// short wait to allow app to write to buffer and simulate user input
-func stutter() {
-	time.Sleep(100 * time.Millisecond)
 }
