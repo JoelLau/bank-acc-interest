@@ -21,11 +21,7 @@ func (a *Menu) Run(ctx context.Context) error {
 
 	for keepLooping := true; keepLooping; pretext = MsgAnythingElsePrompt {
 		prompt := fmt.Sprintf("%s\n%s\n", pretext, MsgMenuItems)
-		err := a.Println(prompt)
-		if err != nil {
-			err = fmt.Errorf("failed to print prompt: %w", err)
-			return err
-		}
+		a.Println(prompt)
 
 		input, err := a.Scan()
 		if err != nil {
@@ -47,11 +43,7 @@ func (a *Menu) Run(ctx context.Context) error {
 		case "p", "P":
 			// do nothing
 		case "q", "Q":
-			err = a.Println(MsgExitThankyou)
-			if err != nil {
-				err = fmt.Errorf("failed to print exit message: %w", err)
-				return err
-			}
+			a.Println(MsgExitThankyou)
 			keepLooping = false
 		default:
 			keepLooping = false

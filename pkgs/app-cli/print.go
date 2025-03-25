@@ -4,16 +4,14 @@ import (
 	"fmt"
 )
 
-func (a *AppCLI) Print(s string) error {
-	_, err := a.Writer.Write([]byte(s))
-	if err != nil {
-		err = fmt.Errorf("failed to print '%s': %w", s, err)
-		return err
-	}
-
-	return nil
+func (a *AppCLI) Printf(s string, args ...any) {
+	fmt.Fprintf(a.Writer, s, args...)
 }
 
-func (a *AppCLI) Println(s string) error {
-	return a.Print(s + "\n")
+func (a *AppCLI) Print(s string) {
+	fmt.Fprint(a.Writer, s)
+}
+
+func (a *AppCLI) Println(s string) {
+	fmt.Fprintln(a.Writer, s)
 }

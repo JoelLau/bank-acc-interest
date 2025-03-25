@@ -20,11 +20,7 @@ const MsgInputTxPrompt = "Please enter transaction details in <Date> <Account> <
 func (a *InputTransactions) Run(ctx context.Context) error {
 
 	for keepLooping := true; keepLooping; {
-		err := a.Println(MsgInputTxPrompt)
-		if err != nil {
-			err = fmt.Errorf("failed to prompt input transactions: %w", err)
-			return err
-		}
+		a.Println(MsgInputTxPrompt)
 
 		input, err := a.Scan()
 		if err != nil {
@@ -36,13 +32,20 @@ func (a *InputTransactions) Run(ctx context.Context) error {
 		case "":
 			keepLooping = false
 		default:
-			// TODO: parse, handle input
-			// TODO: print the rest of the table
-			err := a.Println(fmt.Sprintf("Account: %s\n| Date     | Txn Id      | Type | Amount |\n| 20230626 | 20230626-02 | W    | 100.00 |", "AC001"))
+			tx, err := ParseTransactionString(input)
 			if err != nil {
-				err = fmt.Errorf("failed to input transaction response: %w", err)
-				return err
+				a.Println("invalid input!\n")
+				continue
 			}
+
+			_, err = a.Repo.CreateTransaction(tx)
+			if err != nil {
+				a.Println("invalid input!\n")
+				continue
+			}
+
+			// TODO: print table
+			a.Println("Account: AC001\n| Date     | Txn Id      | Type | Amount |\n| 20230626 | 20230626-02 | W    | 100.00 |")
 			keepLooping = false
 		}
 	}
@@ -58,7 +61,7 @@ var ErrInvalidInput = errors.New("invalid input")
 
 // Expects a string in "<Date> <Account> <Type> <Amount>" format
 // TODO: refactor to break up parsers and validators - chain of responsbility pattern would be nice
-func NewTxFromString(s string) (transactions.Transaction, error) {
+func ParseTransactionString(s string) (transactions.Transaction, error) {
 	var tx transactions.Transaction
 
 	fields := strings.Fields(s)

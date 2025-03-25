@@ -1,6 +1,7 @@
 package appcli
 
 import (
+	"bank-acc-interest/pkgs/repository"
 	"context"
 	"fmt"
 	"io"
@@ -11,10 +12,11 @@ type AppCLI struct {
 	Reader io.Reader
 	Writer io.Writer
 	Logger *slog.Logger
+	Repo   *repository.InMemoryRepository
 }
 
 func NewAppCLI(r io.Reader, w io.Writer, l *slog.Logger) *AppCLI {
-	return &AppCLI{Reader: r, Writer: w, Logger: l}
+	return &AppCLI{Reader: r, Writer: w, Logger: l, Repo: &repository.InMemoryRepository{}}
 }
 
 func (a *AppCLI) Run(ctx context.Context) error {
