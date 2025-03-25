@@ -1,7 +1,8 @@
-package appcli_test
+package cmd_test
 
 import (
-	appcli "bank-acc-interest/pkgs/app-cli"
+	appctx "bank-acc-interest/pkgs/app-ctx"
+	"bank-acc-interest/pkgs/cmd"
 	"bytes"
 	"io"
 	"sync"
@@ -12,15 +13,16 @@ import (
 )
 
 func TestE2EMenu(t *testing.T) {
+	t.Parallel()
+
 	// NOTE: sleep for short duration so that app.Run() can write to buffer
 	inputReader, inputWriter := io.Pipe()
 
 	// NOTE: remember to run .Reset() after reading
 	var outBuf bytes.Buffer
 
-	app := appcli.NewAppCLI(inputReader, &outBuf, discardLogger)
-	menu := appcli.Menu{app}
-	ctx := t.Context()
+	appCtx := appctx.NewAppCtx(inputReader, &outBuf)
+	mainMenu := cmd.NewMainMenuCmd(appCtx)
 
 	var wg sync.WaitGroup
 	var appErr, err error
@@ -29,7 +31,7 @@ func TestE2EMenu(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		appErr = menu.Run(ctx)
+		mainMenu.Execute()
 	}()
 
 	welcomeMessage := `Welcome to AwesomeGIC Bank! What would you like to do?

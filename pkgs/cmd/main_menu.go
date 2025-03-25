@@ -1,13 +1,24 @@
-package appcli
+package cmd
 
 import (
-	"context"
+	appctx "bank-acc-interest/pkgs/app-ctx"
 	"fmt"
 )
 
-type Menu struct {
-	*AppCLI
+type MainMenu struct {
+	*appctx.AppCtx
+
+	InputTransactions *InputTransactions
 }
+
+func NewMainMenuCmd(AppCtx *appctx.AppCtx) *MainMenu {
+	return &MainMenu{
+		AppCtx:            AppCtx,
+		InputTransactions: &InputTransactions{AppCtx: AppCtx},
+	}
+}
+
+var _ Command = &MainMenu{}
 
 const (
 	MsgWelcomePrompt      = "Welcome to AwesomeGIC Bank! What would you like to do?"
@@ -16,39 +27,32 @@ const (
 	MsgExitThankyou       = "Thank you for banking with AwesomeGIC Bank.\nHave a nice day!"
 )
 
-func (a *Menu) Run(ctx context.Context) error {
+func (c *MainMenu) Execute() {
 	pretext := MsgWelcomePrompt
 
 	for keepLooping := true; keepLooping; pretext = MsgAnythingElsePrompt {
-		prompt := fmt.Sprintf("%s\n%s\n", pretext, MsgMenuItems)
-		a.Println(prompt)
+		c.Printf("%s\n%s\n", pretext, MsgMenuItems)
 
-		input, err := a.Scan()
+		input, err := c.Scan()
 		if err != nil {
 			err = fmt.Errorf("failed to get user input for main menu: %w", err)
-			return err
+			panic(err)
 		}
 
 		switch input {
 		case "t", "T":
-			inputTx := &InputTransactions{a.AppCLI}
-
-			err = inputTx.Run(ctx)
-			if err != nil {
-				err = fmt.Errorf("failed to run input transaction: %w", err)
-				return err
-			}
+			c.InputTransactions.Execute()
 		case "i", "I":
 			// do nothing
 		case "p", "P":
 			// do nothing
 		case "q", "Q":
-			a.Println(MsgExitThankyou)
+			c.Println(MsgExitThankyou)
 			keepLooping = false
 		default:
 			keepLooping = false
 		}
 	}
 
-	return nil
+	return
 }

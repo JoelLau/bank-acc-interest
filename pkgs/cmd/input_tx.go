@@ -1,8 +1,8 @@
-package appcli
+package cmd
 
 import (
+	appctx "bank-acc-interest/pkgs/app-ctx"
 	"bank-acc-interest/pkgs/transactions"
-	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -12,45 +12,44 @@ import (
 )
 
 type InputTransactions struct {
-	*AppCLI
+	*appctx.AppCtx
 }
+
+var _ Command = &InputTransactions{}
 
 const MsgInputTxPrompt = "Please enter transaction details in <Date> <Account> <Type> <Amount> format\n(or enter blank to go back to main menu):"
 
-func (a *InputTransactions) Run(ctx context.Context) error {
+func (c *InputTransactions) Execute() {
 
 	for keepLooping := true; keepLooping; {
-		a.Println(MsgInputTxPrompt)
+		c.Println(MsgInputTxPrompt)
 
-		input, err := a.Scan()
-		if err != nil {
-			err = fmt.Errorf("failed to get user input for input transactions: %w", err)
-			return err
-		}
+		input, _ := c.Scan()
 
 		switch input {
 		case "":
 			keepLooping = false
 		default:
-			tx, err := ParseTransactionString(input)
+			_, err := ParseTransactionString(input)
 			if err != nil {
-				a.Println("invalid input!\n")
+				c.Println("invalid input!\n")
 				continue
 			}
 
-			_, err = a.Repo.CreateTransaction(tx)
-			if err != nil {
-				a.Println("invalid input!\n")
-				continue
-			}
+			// TODO: "persist" transaction
+			// _, err = a.Repo.CreateTransaction(tx)
+			// if err != nil {
+			// 	a.Println("invalid input!\n")
+			// 	continue
+			// }
 
 			// TODO: print table
-			a.Println("Account: AC001\n| Date     | Txn Id      | Type | Amount |\n| 20230626 | 20230626-02 | W    | 100.00 |")
+			c.Println("Account: AC001\n| Date     | Txn Id      | Type | Amount |\n| 20230626 | 20230626-02 | W    | 100.00 |")
 			keepLooping = false
 		}
 	}
 
-	return nil
+	return
 }
 
 // TODO: move this

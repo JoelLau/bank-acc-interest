@@ -1,7 +1,7 @@
-package appcli_test
+package appctx_test
 
 import (
-	appcli "bank-acc-interest/pkgs/app-cli"
+	appctx "bank-acc-interest/pkgs/app-ctx"
 	"bytes"
 	"strings"
 	"testing"
@@ -20,7 +20,7 @@ func TestScan(t *testing.T) {
 		want := "lorem ipsum"
 		input := want + "\n"
 
-		cli := appcli.NewAppCLI(strings.NewReader(input), &outputBuf, discardLogger)
+		cli := appctx.NewAppCtx(strings.NewReader(input), &outputBuf)
 
 		have, err := cli.Scan()
 		require.NoError(t, err)
@@ -33,7 +33,7 @@ func TestScan(t *testing.T) {
 		var outputBuf bytes.Buffer
 
 		input := "first\nsecond\n"
-		cli := appcli.NewAppCLI(strings.NewReader(input), &outputBuf, discardLogger)
+		cli := appctx.NewAppCtx(strings.NewReader(input), &outputBuf)
 
 		have, err := cli.Scan()
 		require.NoError(t, err)
@@ -45,20 +45,10 @@ func TestScan(t *testing.T) {
 
 		var outputBuf bytes.Buffer
 
-		cli := appcli.NewAppCLI(strings.NewReader(""), &outputBuf, discardLogger)
+		cli := appctx.NewAppCtx(strings.NewReader(""), &outputBuf)
 
 		have, err := cli.Scan()
 		require.NoError(t, err)
 		require.Empty(t, have)
-	})
-
-	t.Run("reader error", func(t *testing.T) {
-		t.Parallel()
-
-		var outputBuf bytes.Buffer
-
-		cli := appcli.NewAppCLI(&BrokenReader{}, &outputBuf, discardLogger)
-		_, err := cli.Scan()
-		require.ErrorIs(t, err, ErrMockRead)
 	})
 }

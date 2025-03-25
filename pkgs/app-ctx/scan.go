@@ -1,4 +1,4 @@
-package appcli
+package appctx
 
 import (
 	"bufio"
@@ -7,10 +7,10 @@ import (
 
 const PromptPrefix = "> "
 
-func (a *AppCLI) Scan() (string, error) {
+func (a *AppCtx) Scan() (string, error) {
 	a.Print(PromptPrefix)
 
-	scanner := bufio.NewScanner(a.Reader)
+	scanner := bufio.NewScanner(a.Input)
 	if !scanner.Scan() {
 		return "", scanner.Err()
 	}
