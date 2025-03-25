@@ -1,8 +1,14 @@
 package appcli
 
 import (
+	"bank-acc-interest/pkgs/transactions"
 	"context"
+	"errors"
 	"fmt"
+	"strings"
+	"time"
+
+	"github.com/shopspring/decimal"
 )
 
 type InputTransactions struct {
@@ -42,4 +48,62 @@ func (a *InputTransactions) Run(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// TODO: move this
+const DateFormatUserInput = "20060102"
+
+// TODO: move this
+var ErrInvalidInput = errors.New("invalid input")
+
+// Expects a string in "<Date> <Account> <Type> <Amount>" format
+// TODO: refactor to break up parsers and validators - chain of responsbility pattern would be nice
+func NewTxFromString(s string) (transactions.Transaction, error) {
+	var tx transactions.Transaction
+
+	fields := strings.Fields(s)
+	if len(fields) < 4 {
+		return tx, ErrInvalidInput
+	}
+
+	date, err := time.Parse(DateFormatUserInput, fields[0])
+	if err != nil {
+		err = fmt.Errorf("failed to parse transaction date: %w: %w", err, ErrInvalidInput)
+		return transactions.Transaction{}, err
+	}
+
+	accID := strings.TrimSpace(fields[1])
+
+	ttype := fields[2]
+
+	switch ttype {
+	case "w", "W":
+		ttype = "W"
+	case "d", "D":
+		ttype = "D"
+	default:
+		err = fmt.Errorf("invalid transaction type '%s': %w: %w", ttype, err, ErrInvalidInput)
+		return transactions.Transaction{}, err
+	}
+
+	amt, err := decimal.NewFromString(fields[3])
+	if err != nil {
+		err = fmt.Errorf("failed to parse transaction amount: %w: %w", err, ErrInvalidInput)
+		return transactions.Transaction{}, err
+	}
+	if amt.IsNegative() {
+		err := fmt.Errorf("%w: negative amount", ErrInvalidInput)
+		return transactions.Transaction{}, err
+	}
+	if !amt.Round(2).Equal(amt) {
+		err := fmt.Errorf("%w: too many decimal places", ErrInvalidInput)
+		return transactions.Transaction{}, err
+	}
+
+	return transactions.Transaction{
+		Date:      date,
+		AccountID: accID,
+		Type:      transactions.TransactionType(ttype),
+		Amount:    amt.Round(2),
+	}, nil
 }
