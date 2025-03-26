@@ -10,6 +10,7 @@ type MainMenu struct {
 
 	InputTransactions   Command
 	DefineInterestRules Command
+	PrintStatements     Command
 }
 
 func NewMainMenuCmd(AppCtx *appctx.AppCtx) *MainMenu {
@@ -17,6 +18,7 @@ func NewMainMenuCmd(AppCtx *appctx.AppCtx) *MainMenu {
 		AppCtx:              AppCtx,
 		InputTransactions:   &InputTransactions{AppCtx: AppCtx},
 		DefineInterestRules: &DefineInterestRule{AppCtx: AppCtx},
+		PrintStatements:     &PrintStatements{AppCtx: AppCtx},
 	}
 }
 
@@ -42,12 +44,18 @@ func (c *MainMenu) Execute() {
 		}
 
 		switch input {
-		case "t", "T": // [T] Input transactions
+		case "t", "T":
+			// [T] Input transactions
 			c.InputTransactions.Execute()
-		case "i", "I": // [I] Define interest rules
+
+		case "i", "I":
+			// [I] Define interest rules
 			c.DefineInterestRules.Execute()
-		case "p", "P": // [P] Print statement
-			// do nothing
+
+		case "p", "P":
+			// [P] Print statement
+			c.PrintStatements.Execute()
+
 		case "q", "Q":
 			c.Println(MsgExitThankyou)
 			keepLooping = false

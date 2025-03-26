@@ -42,6 +42,10 @@ func TestE2EMainMenu(t *testing.T) {
 	mainMenu.DefineInterestRules = defineInterestRuleSpyCmd
 	require.Falsef(t, defineInterestRuleSpyCmd.IsExecuted, "sanity check: spy hasn't logged execution")
 
+	printTransactionsSpyCmd := &SpyCommand{}
+	mainMenu.PrintStatements = printTransactionsSpyCmd
+	require.Falsef(t, printTransactionsSpyCmd.IsExecuted, "sanity check: spy hasn't logged execution")
+
 	var wg sync.WaitGroup
 	var appErr, err error
 	defer require.NoError(t, appErr)
@@ -66,6 +70,16 @@ func TestE2EMainMenu(t *testing.T) {
 	_, err = inputWriter.Write([]byte("t\n"))
 	require.NoError(t, err)
 	require.True(t, inputTxSpyCmd.IsExecuted)
+
+	stutter()
+	_, err = inputWriter.Write([]byte("i\n"))
+	require.NoError(t, err)
+	require.True(t, defineInterestRuleSpyCmd.IsExecuted)
+
+	stutter()
+	_, err = inputWriter.Write([]byte("p\n"))
+	require.NoError(t, err)
+	require.True(t, printTransactionsSpyCmd.IsExecuted)
 
 	stutter()
 	_, err = inputWriter.Write([]byte("q\n"))
