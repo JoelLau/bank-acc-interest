@@ -12,7 +12,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestE2EMenu(t *testing.T) {
+type SpyCommand struct {
+	IsExecuted bool
+}
+
+var _ cmd.Command = &SpyCommand{}
+
+func (c *SpyCommand) Execute() {
+	c.IsExecuted = true
+}
+
+func TestE2EMainMenu(t *testing.T) {
 	t.Parallel()
 
 	// NOTE: sleep for short duration so that app.Run() can write to buffer
@@ -23,6 +33,10 @@ func TestE2EMenu(t *testing.T) {
 
 	appCtx := appctx.NewAppCtx(inputReader, &outBuf)
 	mainMenu := cmd.NewMainMenuCmd(appCtx)
+
+	inputTxSpyCmd := &SpyCommand{}
+	mainMenu.InputTransactions = inputTxSpyCmd
+	require.Falsef(t, inputTxSpyCmd.IsExecuted, "sanity check: spy hasn't logged execution")
 
 	var wg sync.WaitGroup
 	var appErr, err error
@@ -43,6 +57,11 @@ func TestE2EMenu(t *testing.T) {
 	stutter()
 	require.Contains(t, outBuf.String(), welcomeMessage)
 	outBuf.Reset()
+
+	stutter()
+	_, err = inputWriter.Write([]byte("t\n"))
+	require.NoError(t, err)
+	require.True(t, inputTxSpyCmd.IsExecuted)
 
 	stutter()
 	_, err = inputWriter.Write([]byte("q\n"))

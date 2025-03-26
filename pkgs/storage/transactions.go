@@ -1,4 +1,4 @@
-package transactions
+package storage
 
 import (
 	"time"
@@ -11,9 +11,12 @@ type (
 	AccountID     = string
 )
 
-type Transaction struct {
-	// populated by DB
+type BankTransaction struct {
+	// Populated by DB.
 	ID TransactionID
+
+	// Populated by DB.
+	CreatedAt time.Time
 
 	AccountID AccountID
 
@@ -24,3 +27,11 @@ type Transaction struct {
 
 	Amount decimal.Decimal
 }
+
+type TransactionType string
+
+const (
+	TransactionTypeWidthdraw = "W"
+	TransactionTypeDeposit   = "D"
+	TransactionTypeInterest  = "I"
+)

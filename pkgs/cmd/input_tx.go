@@ -2,7 +2,7 @@ package cmd
 
 import (
 	appctx "bank-acc-interest/pkgs/app-ctx"
-	"bank-acc-interest/pkgs/transactions"
+	"bank-acc-interest/pkgs/storage"
 	"errors"
 	"fmt"
 	"strings"
@@ -60,8 +60,8 @@ var ErrInvalidInput = errors.New("invalid input")
 
 // Expects a string in "<Date> <Account> <Type> <Amount>" format
 // TODO: refactor to break up parsers and validators - chain of responsbility pattern would be nice
-func ParseTransactionString(s string) (transactions.Transaction, error) {
-	var tx transactions.Transaction
+func ParseTransactionString(s string) (storage.BankTransaction, error) {
+	var tx storage.BankTransaction
 
 	fields := strings.Fields(s)
 	if len(fields) < 4 {
@@ -71,7 +71,7 @@ func ParseTransactionString(s string) (transactions.Transaction, error) {
 	date, err := time.Parse(DateFormatUserInput, fields[0])
 	if err != nil {
 		err = fmt.Errorf("failed to parse transaction date: %w: %w", err, ErrInvalidInput)
-		return transactions.Transaction{}, err
+		return storage.BankTransaction{}, err
 	}
 
 	accID := strings.TrimSpace(fields[1])
@@ -85,27 +85,27 @@ func ParseTransactionString(s string) (transactions.Transaction, error) {
 		ttype = "D"
 	default:
 		err = fmt.Errorf("invalid transaction type '%s': %w: %w", ttype, err, ErrInvalidInput)
-		return transactions.Transaction{}, err
+		return storage.BankTransaction{}, err
 	}
 
 	amt, err := decimal.NewFromString(fields[3])
 	if err != nil {
 		err = fmt.Errorf("failed to parse transaction amount: %w: %w", err, ErrInvalidInput)
-		return transactions.Transaction{}, err
+		return storage.BankTransaction{}, err
 	}
 	if amt.IsNegative() {
 		err := fmt.Errorf("%w: negative amount", ErrInvalidInput)
-		return transactions.Transaction{}, err
+		return storage.BankTransaction{}, err
 	}
 	if !amt.Round(2).Equal(amt) {
 		err := fmt.Errorf("%w: too many decimal places", ErrInvalidInput)
-		return transactions.Transaction{}, err
+		return storage.BankTransaction{}, err
 	}
 
-	return transactions.Transaction{
+	return storage.BankTransaction{
 		Date:      date,
 		AccountID: accID,
-		Type:      transactions.TransactionType(ttype),
+		Type:      storage.TransactionType(ttype),
 		Amount:    amt.Round(2),
 	}, nil
 }

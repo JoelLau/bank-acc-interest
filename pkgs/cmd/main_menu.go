@@ -8,7 +8,7 @@ import (
 type MainMenu struct {
 	*appctx.AppCtx
 
-	InputTransactions *InputTransactions
+	InputTransactions Command
 }
 
 func NewMainMenuCmd(AppCtx *appctx.AppCtx) *MainMenu {
@@ -40,11 +40,11 @@ func (c *MainMenu) Execute() {
 		}
 
 		switch input {
-		case "t", "T":
+		case "t", "T": // [T] Input transactions
 			c.InputTransactions.Execute()
-		case "i", "I":
+		case "i", "I": // [I] Define interest rules
 			// do nothing
-		case "p", "P":
+		case "p", "P": // [P] Print statement
 			// do nothing
 		case "q", "Q":
 			c.Println(MsgExitThankyou)
