@@ -8,13 +8,15 @@ import (
 type MainMenu struct {
 	*appctx.AppCtx
 
-	InputTransactions Command
+	InputTransactions   Command
+	DefineInterestRules Command
 }
 
 func NewMainMenuCmd(AppCtx *appctx.AppCtx) *MainMenu {
 	return &MainMenu{
-		AppCtx:            AppCtx,
-		InputTransactions: &InputTransactions{AppCtx: AppCtx},
+		AppCtx:              AppCtx,
+		InputTransactions:   &InputTransactions{AppCtx: AppCtx},
+		DefineInterestRules: &DefineInterestRule{AppCtx: AppCtx},
 	}
 }
 
@@ -43,7 +45,7 @@ func (c *MainMenu) Execute() {
 		case "t", "T": // [T] Input transactions
 			c.InputTransactions.Execute()
 		case "i", "I": // [I] Define interest rules
-			// do nothing
+			c.DefineInterestRules.Execute()
 		case "p", "P": // [P] Print statement
 			// do nothing
 		case "q", "Q":

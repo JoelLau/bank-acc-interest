@@ -38,6 +38,10 @@ func TestE2EMainMenu(t *testing.T) {
 	mainMenu.InputTransactions = inputTxSpyCmd
 	require.Falsef(t, inputTxSpyCmd.IsExecuted, "sanity check: spy hasn't logged execution")
 
+	defineInterestRuleSpyCmd := &SpyCommand{}
+	mainMenu.DefineInterestRules = defineInterestRuleSpyCmd
+	require.Falsef(t, defineInterestRuleSpyCmd.IsExecuted, "sanity check: spy hasn't logged execution")
+
 	var wg sync.WaitGroup
 	var appErr, err error
 	defer require.NoError(t, appErr)
