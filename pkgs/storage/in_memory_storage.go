@@ -53,6 +53,7 @@ func (i *InMemoryStrorage) InsertBankTransaction(params InsertBankTransactionPar
 	return bankTx, nil
 }
 
+// TODO: check account balance
 func (i *InMemoryStrorage) InsertInterestRule(params InsertInterestRuleParams) (InterestRule, error) {
 	rule := InterestRule(params)
 
