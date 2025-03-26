@@ -90,6 +90,10 @@ func ParseInsertBankTxParams(s string) (storage.InsertBankTransactionParams, err
 		err := fmt.Errorf("%w: negative amount", ErrInvalidInput)
 		return storage.InsertBankTransactionParams{}, err
 	}
+	if amt.GreaterThan(decimal.NewFromInt(100)) {
+		err := fmt.Errorf("%w: more than 100", ErrInvalidInput)
+		return storage.InsertBankTransactionParams{}, err
+	}
 	if !amt.Round(2).Equal(amt) {
 		err := fmt.Errorf("%w: too many decimal places", ErrInvalidInput)
 		return storage.InsertBankTransactionParams{}, err
