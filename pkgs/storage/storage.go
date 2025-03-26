@@ -3,7 +3,7 @@ package storage
 import (
 	"time"
 
-	decimal "github.com/jackc/pgx-shopspring-decimal"
+	"github.com/shopspring/decimal"
 )
 
 type Storage interface {

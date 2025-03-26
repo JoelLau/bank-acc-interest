@@ -2,6 +2,7 @@ package appcli_test
 
 import (
 	appcli "bank-acc-interest/internal/app-cli"
+	"bank-acc-interest/pkgs/storage"
 	"bytes"
 	"io"
 	"testing"
@@ -14,10 +15,12 @@ func TestAppCLI(t *testing.T) {
 
 	var i io.Reader = &bytes.Buffer{}
 	var o io.Writer = &bytes.Buffer{}
+	var s storage.Storage = storage.NewInMemoryStorage()
 
-	appCLI := appcli.NewAppCLI(i, o)
+	appCLI := appcli.NewAppCLI(i, o, s)
 	appCLI.Run()
 
 	require.Same(t, i, appCLI.AppCtx.Input)
 	require.Same(t, o, appCLI.AppCtx.Output)
+	require.Same(t, s, appCLI.AppCtx.Storage)
 }

@@ -2,6 +2,7 @@ package appctx_test
 
 import (
 	appctx "bank-acc-interest/pkgs/app-ctx"
+	"bank-acc-interest/pkgs/storage"
 	"bytes"
 	"io"
 	"testing"
@@ -17,7 +18,7 @@ func TestPrint(t *testing.T) {
 	// NOTE: remember to run .Reset() after reading
 	var outBuf bytes.Buffer
 
-	app := appctx.NewAppCtx(inputReader, &outBuf)
+	app := appctx.NewAppCtx(inputReader, &outBuf, storage.NewInMemoryStorage())
 
 	app.Print("asdf")
 
@@ -35,7 +36,7 @@ func TestPrintf(t *testing.T) {
 	// NOTE: remember to run .Reset() after reading
 	var outBuf bytes.Buffer
 
-	app := appctx.NewAppCtx(inputReader, &outBuf)
+	app := appctx.NewAppCtx(inputReader, &outBuf, storage.NewInMemoryStorage())
 
 	app.Printf("asdf %s", "qwer")
 
@@ -51,7 +52,7 @@ func TestPrintln(t *testing.T) {
 	// NOTE: remember to run .Reset() after reading
 	var outBuf bytes.Buffer
 
-	app := appctx.NewAppCtx(inputReader, &outBuf)
+	app := appctx.NewAppCtx(inputReader, &outBuf, storage.NewInMemoryStorage())
 
 	app.Println("asdf")
 

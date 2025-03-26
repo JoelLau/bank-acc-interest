@@ -3,6 +3,7 @@ package appcli
 import (
 	appctx "bank-acc-interest/pkgs/app-ctx"
 	"bank-acc-interest/pkgs/cmd"
+	"bank-acc-interest/pkgs/storage"
 	"io"
 )
 
@@ -11,13 +12,13 @@ type AppCLI struct {
 	*appctx.AppCtx
 }
 
-func NewAppCLI(i io.Reader, o io.Writer) *AppCLI {
+func NewAppCLI(i io.Reader, o io.Writer, s storage.Storage) *AppCLI {
 	return &AppCLI{
-		AppCtx: appctx.NewAppCtx(i, o),
+		AppCtx: appctx.NewAppCtx(i, o, s),
 	}
 }
 
 func (a *AppCLI) Run() {
-	menuCmd := cmd.MainMenu{AppCtx: a.AppCtx}
+	menuCmd := cmd.NewMainMenuCmd(a.AppCtx)
 	menuCmd.Execute()
 }

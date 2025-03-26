@@ -3,7 +3,6 @@ package cmd
 import (
 	appctx "bank-acc-interest/pkgs/app-ctx"
 	"bank-acc-interest/pkgs/storage"
-	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -30,21 +29,20 @@ func (c *InputTransactions) Execute() {
 		case "":
 			keepLooping = false
 		default:
-			_, err := ParseTransactionString(input)
+			tx, err := ParseInsertBankTxParams(input)
 			if err != nil {
 				c.Println("invalid input!\n")
 				continue
 			}
 
-			// TODO: "persist" transaction
-			// _, err = a.Repo.CreateTransaction(tx)
-			// if err != nil {
-			// 	a.Println("invalid input!\n")
-			// 	continue
-			// }
+			_, err = c.Storage.InsertBankTransaction(tx)
+			if err != nil {
+				c.Println("could not append bank transaction record\n")
+				continue
+			}
 
-			// TODO: print table
-			c.Println("Account: AC001\n| Date     | Txn Id      | Type | Amount |\n| 20230626 | 20230626-02 | W    | 100.00 |")
+			// TODO: print proper table
+			c.Println("Account: AC001\n| Date     | Txn Id      | Type | Amount |\n| 20230626 | 20230626-02 | W    | 100.00 |\n")
 			keepLooping = false
 		}
 	}
@@ -52,16 +50,10 @@ func (c *InputTransactions) Execute() {
 	return
 }
 
-// TODO: move this
-const DateFormatUserInput = "20060102"
-
-// TODO: move this
-var ErrInvalidInput = errors.New("invalid input")
-
 // Expects a string in "<Date> <Account> <Type> <Amount>" format
-// TODO: refactor to break up parsers and validators - chain of responsbility pattern would be nice
-func ParseTransactionString(s string) (storage.BankTransaction, error) {
-	var tx storage.BankTransaction
+// Enhancement: refactor to break up parsers and validators - chain of responsbility pattern would be nice
+func ParseInsertBankTxParams(s string) (storage.InsertBankTransactionParams, error) {
+	var tx storage.InsertBankTransactionParams
 
 	fields := strings.Fields(s)
 	if len(fields) < 4 {
@@ -71,41 +63,42 @@ func ParseTransactionString(s string) (storage.BankTransaction, error) {
 	date, err := time.Parse(DateFormatUserInput, fields[0])
 	if err != nil {
 		err = fmt.Errorf("failed to parse transaction date: %w: %w", err, ErrInvalidInput)
-		return storage.BankTransaction{}, err
+		return storage.InsertBankTransactionParams{}, err
 	}
 
 	accID := strings.TrimSpace(fields[1])
 
-	ttype := fields[2]
+	typStr := fields[2]
+	var ttype storage.TransactionType
 
-	switch ttype {
+	switch typStr {
 	case "w", "W":
-		ttype = "W"
+		ttype = storage.TransactionTypeWidthdraw
 	case "d", "D":
-		ttype = "D"
+		ttype = storage.TransactionTypeDeposit
 	default:
 		err = fmt.Errorf("invalid transaction type '%s': %w: %w", ttype, err, ErrInvalidInput)
-		return storage.BankTransaction{}, err
+		return storage.InsertBankTransactionParams{}, err
 	}
 
 	amt, err := decimal.NewFromString(fields[3])
 	if err != nil {
 		err = fmt.Errorf("failed to parse transaction amount: %w: %w", err, ErrInvalidInput)
-		return storage.BankTransaction{}, err
+		return storage.InsertBankTransactionParams{}, err
 	}
 	if amt.IsNegative() {
 		err := fmt.Errorf("%w: negative amount", ErrInvalidInput)
-		return storage.BankTransaction{}, err
+		return storage.InsertBankTransactionParams{}, err
 	}
 	if !amt.Round(2).Equal(amt) {
 		err := fmt.Errorf("%w: too many decimal places", ErrInvalidInput)
-		return storage.BankTransaction{}, err
+		return storage.InsertBankTransactionParams{}, err
 	}
 
-	return storage.BankTransaction{
+	return storage.InsertBankTransactionParams{
 		Date:      date,
 		AccountID: accID,
-		Type:      storage.TransactionType(ttype),
+		Type:      ttype,
 		Amount:    amt.Round(2),
 	}, nil
 }

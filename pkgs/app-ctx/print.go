@@ -5,13 +5,13 @@ import (
 )
 
 func (a *AppCtx) Printf(s string, args ...any) {
-	fmt.Fprintf(a.Output, s, args...)
+	_, _ = a.Output.Write([]byte(fmt.Sprintf(s, args...)))
 }
 
 func (a *AppCtx) Print(s string) {
-	fmt.Fprint(a.Output, s)
+	_, _ = a.Output.Write([]byte(s))
 }
 
 func (a *AppCtx) Println(s string) {
-	fmt.Fprintln(a.Output, s)
+	_, _ = a.Output.Write([]byte(s + "\n"))
 }

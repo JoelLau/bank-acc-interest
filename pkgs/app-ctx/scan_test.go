@@ -2,6 +2,7 @@ package appctx_test
 
 import (
 	appctx "bank-acc-interest/pkgs/app-ctx"
+	"bank-acc-interest/pkgs/storage"
 	"bytes"
 	"strings"
 	"testing"
@@ -20,7 +21,7 @@ func TestScan(t *testing.T) {
 		want := "lorem ipsum"
 		input := want + "\n"
 
-		cli := appctx.NewAppCtx(strings.NewReader(input), &outputBuf)
+		cli := appctx.NewAppCtx(strings.NewReader(input), &outputBuf, storage.NewInMemoryStorage())
 
 		have, err := cli.Scan()
 		require.NoError(t, err)
@@ -33,7 +34,7 @@ func TestScan(t *testing.T) {
 		var outputBuf bytes.Buffer
 
 		input := "first\nsecond\n"
-		cli := appctx.NewAppCtx(strings.NewReader(input), &outputBuf)
+		cli := appctx.NewAppCtx(strings.NewReader(input), &outputBuf, storage.NewInMemoryStorage())
 
 		have, err := cli.Scan()
 		require.NoError(t, err)
@@ -45,7 +46,7 @@ func TestScan(t *testing.T) {
 
 		var outputBuf bytes.Buffer
 
-		cli := appctx.NewAppCtx(strings.NewReader(""), &outputBuf)
+		cli := appctx.NewAppCtx(strings.NewReader(""), &outputBuf, storage.NewInMemoryStorage())
 
 		have, err := cli.Scan()
 		require.NoError(t, err)

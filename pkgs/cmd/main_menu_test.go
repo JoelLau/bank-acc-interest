@@ -3,11 +3,11 @@ package cmd_test
 import (
 	appctx "bank-acc-interest/pkgs/app-ctx"
 	"bank-acc-interest/pkgs/cmd"
+	"bank-acc-interest/pkgs/storage"
 	"bytes"
 	"io"
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -31,7 +31,7 @@ func TestE2EMainMenu(t *testing.T) {
 	// NOTE: remember to run .Reset() after reading
 	var outBuf bytes.Buffer
 
-	appCtx := appctx.NewAppCtx(inputReader, &outBuf)
+	appCtx := appctx.NewAppCtx(inputReader, &outBuf, storage.NewInMemoryStorage())
 	mainMenu := cmd.NewMainMenuCmd(appCtx)
 
 	inputTxSpyCmd := &SpyCommand{}
@@ -75,9 +75,4 @@ Have a nice day!`
 	outBuf.Reset()
 
 	wg.Wait()
-}
-
-// short wait to allow app to write to buffer and simulate user input
-func stutter() {
-	time.Sleep(100 * time.Millisecond)
 }

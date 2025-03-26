@@ -13,6 +13,8 @@ type (
 
 type BankTransaction struct {
 	// Populated by DB.
+	//
+	// In YYYYMMdd-xx format, where xx is a running number.
 	ID TransactionID
 
 	// Populated by DB.
@@ -31,7 +33,7 @@ type BankTransaction struct {
 type TransactionType string
 
 const (
-	TransactionTypeWidthdraw = "W"
-	TransactionTypeDeposit   = "D"
-	TransactionTypeInterest  = "I"
+	TransactionTypeWidthdraw TransactionType = "W"
+	TransactionTypeDeposit   TransactionType = "D"
+	TransactionTypeInterest  TransactionType = "I"
 )
