@@ -28,7 +28,7 @@ func TestE2EIDefineInterestRule(t *testing.T) {
 	require.Len(t, store.InterestRules, 0)
 
 	appCtx := appctx.NewAppCtx(inputReader, &outBuf, store)
-	inputTxCmd := cmd.InputTransactions{AppCtx: appCtx}
+	defineInterestRuleCmd := cmd.DefineInterestRule{AppCtx: appCtx}
 
 	var wg sync.WaitGroup
 	var err error
@@ -36,12 +36,11 @@ func TestE2EIDefineInterestRule(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		inputTxCmd.Execute()
+		defineInterestRuleCmd.Execute()
 	}()
 
-	enterDetailsPrompt := `Please enter transaction details in <Date> <Account> <Type> <Amount> format
-(or enter blank to go back to main menu):
-`
+	enterDetailsPrompt := `Please enter interest rules details in <Date> <RuleId> <Rate in %> format
+(or enter blank to go back to main menu):`
 
 	stutter()
 	require.Contains(t, outBuf.String(), enterDetailsPrompt)
@@ -55,12 +54,12 @@ func TestE2EIDefineInterestRule(t *testing.T) {
 	outBuf.Reset()
 	require.Len(t, store.InterestRules, 0)
 
-	_, err = inputWriter.Write([]byte("20230626 AC001 W 100.00\n"))
+	_, err = inputWriter.Write([]byte("20230615 RULE03 2.20\n"))
 	require.NoError(t, err)
 
 	stutter()
-	require.Contains(t, outBuf.String(), `Account: AC001
-| Date     | Txn Id      | Type | Amount |`)
+	require.Contains(t, outBuf.String(), `Interest rules:
+| Date     | RuleId | Rate (%) |`)
 	outBuf.Reset()
 	require.Len(t, store.InterestRules, 1)
 

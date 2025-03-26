@@ -16,10 +16,12 @@ type DefineInterestRule struct {
 
 var _ Command = &DefineInterestRule{}
 
+const MsgDefineInterestRulePrompt = "Please enter interest rules details in <Date> <RuleId> <Rate in %> format\n(or enter blank to go back to main menu):"
+
 func (c *DefineInterestRule) Execute() {
 
 	for keepLooping := true; keepLooping; {
-		c.Println(MsgInputTxPrompt)
+		c.Println(MsgDefineInterestRulePrompt)
 
 		input, _ := c.Scan()
 
@@ -35,12 +37,12 @@ func (c *DefineInterestRule) Execute() {
 
 			_, err = c.Storage.InsertInterestRule(tx)
 			if err != nil {
-				c.Println("could not append bank transaction record\n")
+				c.Println("could not upsert interest rule record\n")
 				continue
 			}
 
 			// TODO: print proper table
-			c.Println("Account: AC001\n| Date     | Txn Id      | Type | Amount |\n| 20230626 | 20230626-02 | W    | 100.00 |\n")
+			c.Println("Interest rules:\n| Date     | RuleId | Rate (%) |")
 			keepLooping = false
 		}
 	}
