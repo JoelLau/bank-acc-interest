@@ -41,13 +41,51 @@ func (c *InputTransactions) Execute() {
 				continue
 			}
 
-			// TODO: print proper table
-			c.Println("Account: AC001\n| Date     | Txn Id      | Type | Amount |\n| 20230626 | 20230626-02 | W    | 100.00 |\n")
+			transactions, err := c.Storage.GetAccountTransactionsByMonth(tx.AccountID, tx.Date)
+			if err != nil {
+				c.Println("could not fetch transactions\n")
+				continue
+			}
+
+			c.Printf("Account: %s\n", tx.AccountID)
+
+			data := [][]string{}
+			for _, transaction := range transactions {
+				data = append(data, []string{
+					transaction.Date.Format(DateFormatUserInput),
+					transaction.ID,
+					string(transaction.Type),
+					transaction.Amount.StringFixed(2),
+				})
+			}
+
+			c.PrintTable(TxColDef, data)
+			c.Println("")
+
 			keepLooping = false
 		}
 	}
 
 	return
+}
+
+var TxColDef = []appctx.ColDef{
+	{
+		Header: "Date",
+		Align:  appctx.ColumnAlignLeft,
+	},
+	{
+		Header: "Txn Id",
+		Align:  appctx.ColumnAlignLeft,
+	},
+	{
+		Header: "Type",
+		Align:  appctx.ColumnAlignLeft,
+	},
+	{
+		Header: "Amount",
+		Align:  appctx.ColumnAlignRight,
+	},
 }
 
 // Expects a string in "<Date> <Account> <Type> <Amount>" format
@@ -73,7 +111,7 @@ func ParseInsertBankTxParams(s string) (storage.InsertBankTransactionParams, err
 
 	switch typStr {
 	case "w", "W":
-		ttype = storage.TransactionTypeWidthdraw
+		ttype = storage.TransactionTypeWithdraw
 	case "d", "D":
 		ttype = storage.TransactionTypeDeposit
 	default:
@@ -88,10 +126,6 @@ func ParseInsertBankTxParams(s string) (storage.InsertBankTransactionParams, err
 	}
 	if amt.IsNegative() {
 		err := fmt.Errorf("%w: negative amount", ErrInvalidInput)
-		return storage.InsertBankTransactionParams{}, err
-	}
-	if amt.GreaterThan(decimal.NewFromInt(100)) {
-		err := fmt.Errorf("%w: more than 100", ErrInvalidInput)
 		return storage.InsertBankTransactionParams{}, err
 	}
 	if !amt.Round(2).Equal(amt) {

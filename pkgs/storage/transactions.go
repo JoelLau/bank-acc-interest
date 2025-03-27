@@ -11,16 +11,17 @@ type (
 	AccountID     = string
 )
 
+type Account struct {
+	ID           AccountID
+	Transactions []BankTransaction // must main sortedness
+	Balance      decimal.Decimal
+}
+
 type BankTransaction struct {
 	// Populated by DB.
 	//
 	// In YYYYMMdd-xx format, where xx is a running number.
 	ID TransactionID
-
-	// Populated by DB.
-	CreatedAt time.Time
-
-	AccountID AccountID
 
 	Type TransactionType
 
@@ -33,7 +34,7 @@ type BankTransaction struct {
 type TransactionType string
 
 const (
-	TransactionTypeWidthdraw TransactionType = "W"
-	TransactionTypeDeposit   TransactionType = "D"
-	TransactionTypeInterest  TransactionType = "I"
+	TransactionTypeWithdraw TransactionType = "W"
+	TransactionTypeDeposit  TransactionType = "D"
+	TransactionTypeInterest TransactionType = "I"
 )

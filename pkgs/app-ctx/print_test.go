@@ -12,6 +12,8 @@ import (
 )
 
 func TestPrint(t *testing.T) {
+	t.Parallel()
+
 	// NOTE: sleep for short duration so that app.Run() can write to buffer
 	inputReader, _ := io.Pipe()
 
@@ -46,6 +48,8 @@ func TestPrintf(t *testing.T) {
 }
 
 func TestPrintln(t *testing.T) {
+	t.Parallel()
+
 	// NOTE: sleep for short duration so that app.Run() can write to buffer
 	inputReader, _ := io.Pipe()
 
@@ -58,5 +62,50 @@ func TestPrintln(t *testing.T) {
 
 	time.Sleep(10 * time.Millisecond)
 	require.Equal(t, outBuf.String(), "asdf\n")
+	outBuf.Reset()
+}
+
+func TestPrintTable(t *testing.T) {
+	t.Parallel()
+
+	// NOTE: sleep for short duration so that app.Run() can write to buffer
+	inputReader, _ := io.Pipe()
+
+	// NOTE: remember to run .Reset() after reading
+	var outBuf bytes.Buffer
+
+	app := appctx.NewAppCtx(inputReader, &outBuf, storage.NewInMemoryStorage())
+
+	time.Sleep(10 * time.Millisecond)
+
+	colDef := []appctx.ColDef{
+		{
+			Header: "Date",
+			Align:  appctx.ColumnAlignLeft,
+		},
+		{
+			Header: "Txn Id",
+			Align:  appctx.ColumnAlignLeft,
+		},
+		{
+			Header: "Type",
+			Align:  appctx.ColumnAlignLeft,
+		},
+		{
+			Header: "Amount",
+			Align:  appctx.ColumnAlignRight,
+		},
+	}
+
+	data := [][]string{
+		{"20230505", "20230505-01", "D", "20.00"},
+	}
+
+	app.PrintTable(colDef, data)
+
+	expect := `| Date     | Txn Id      | Type | Amount |
+| 20230505 | 20230505-01 | D    |  20.00 |`
+
+	require.Equal(t, expect, outBuf.String())
 	outBuf.Reset()
 }

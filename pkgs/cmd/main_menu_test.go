@@ -8,6 +8,7 @@ import (
 	"io"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -93,4 +94,9 @@ Have a nice day!`
 	outBuf.Reset()
 
 	wg.Wait()
+}
+
+// short wait to allow app to write to buffer and simulate user input
+func stutter() {
+	time.Sleep(10 * time.Millisecond)
 }

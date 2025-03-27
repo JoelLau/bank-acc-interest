@@ -8,6 +8,7 @@ import (
 
 type Storage interface {
 	InsertBankTransaction(InsertBankTransactionParams) (BankTransaction, error)
+	GetAccountTransactionsByMonth(AccountID, time.Time) ([]BankTransaction, error)
 	InsertInterestRule(InsertInterestRuleParams) (InterestRule, error)
 }
 
