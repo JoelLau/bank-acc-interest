@@ -58,8 +58,8 @@ func TestE2EIDefineInterestRule(t *testing.T) {
 	require.NoError(t, err)
 
 	stutter()
-	require.Contains(t, outBuf.String(), `Interest rules:
-| Date     | RuleId | Rate (%) |`)
+	require.Contains(t, outBuf.String(), `| Date     | RuleId | Rate (%) |
+| 20230615 | RULE03 |     2.20 |`)
 	outBuf.Reset()
 	require.Len(t, store.InterestRules, 1)
 
@@ -125,7 +125,7 @@ func TestNewInterestRuleFromString(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			have, err := cmd.ParseInsertInterestRuleParams(tt.given)
+			have, err := cmd.ParseUpsertInterestRuleParams(tt.given)
 			require.ErrorIs(t, err, tt.err)
 
 			assert.Equal(t, tt.expect.Date, have.Date)

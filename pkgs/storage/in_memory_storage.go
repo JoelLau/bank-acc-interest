@@ -13,10 +13,3 @@ func NewInMemoryStorage() *InMemoryStrorage {
 		InterestRules: make([]InterestRule, 0),
 	}
 }
-
-// TODO: check account balance
-func (i *InMemoryStrorage) InsertInterestRule(params InsertInterestRuleParams) (InterestRule, error) {
-	rule := InterestRule(params)
-	i.InterestRules = append(i.InterestRules, rule)
-	return rule, nil
-}

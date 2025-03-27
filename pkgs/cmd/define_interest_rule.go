@@ -18,6 +18,12 @@ var _ Command = &DefineInterestRule{}
 
 const MsgDefineInterestRulePrompt = "Please enter interest rules details in <Date> <RuleId> <Rate in %> format\n(or enter blank to go back to main menu):"
 
+var InterestRuleColDef = []appctx.ColDef{
+	{Header: "Date", Align: appctx.ColumnAlignLeft},
+	{Header: "RuleId", Align: appctx.ColumnAlignLeft},
+	{Header: "Rate (%)", Align: appctx.ColumnAlignRight},
+}
+
 func (c *DefineInterestRule) Execute() {
 
 	for keepLooping := true; keepLooping; {
@@ -29,20 +35,34 @@ func (c *DefineInterestRule) Execute() {
 		case "":
 			keepLooping = false
 		default:
-			tx, err := ParseInsertInterestRuleParams(input)
+			tx, err := ParseUpsertInterestRuleParams(input)
 			if err != nil {
 				c.Println("invalid input!\n")
 				continue
 			}
 
-			_, err = c.Storage.InsertInterestRule(tx)
+			_, err = c.Storage.UpsertInterestRule(tx)
 			if err != nil {
 				c.Println("could not upsert interest rule record\n")
 				continue
 			}
 
-			// TODO: print proper table
-			c.Println("Interest rules:\n| Date     | RuleId | Rate (%) |")
+			rules, err := c.Storage.GetInterestRules()
+			if err != nil {
+				c.Println("could not get interest rules\n")
+				continue
+			}
+
+			data := make([][]string, len(rules))
+			for i, rule := range rules {
+				data[i] = []string{
+					rule.Date.Format(DateFormatUserInput),
+					rule.RuleID,
+					rule.InterestRate.StringFixed(2),
+				}
+			}
+
+			c.PrintTable(InterestRuleColDef, data)
 			keepLooping = false
 		}
 	}
@@ -52,8 +72,8 @@ func (c *DefineInterestRule) Execute() {
 
 // Expects a string in "<Date> <Account> <Type> <Amount>" format
 // Enhancement: refactor to break up parsers and validators - chain of responsbility pattern would be nice
-func ParseInsertInterestRuleParams(s string) (storage.InsertInterestRuleParams, error) {
-	var tx storage.InsertInterestRuleParams
+func ParseUpsertInterestRuleParams(s string) (storage.UpsertInterestRuleParams, error) {
+	var tx storage.UpsertInterestRuleParams
 
 	fields := strings.Fields(s)
 	if len(fields) < 3 {
@@ -63,7 +83,7 @@ func ParseInsertInterestRuleParams(s string) (storage.InsertInterestRuleParams, 
 	date, err := time.Parse(DateFormatUserInput, fields[0])
 	if err != nil {
 		err = fmt.Errorf("failed to parse transaction date: %w: %w", err, ErrInvalidInput)
-		return storage.InsertInterestRuleParams{}, err
+		return storage.UpsertInterestRuleParams{}, err
 	}
 
 	ruleID := strings.TrimSpace(fields[1])
@@ -71,18 +91,18 @@ func ParseInsertInterestRuleParams(s string) (storage.InsertInterestRuleParams, 
 	interestRate, err := decimal.NewFromString(fields[2])
 	if err != nil {
 		err = fmt.Errorf("failed to parse transaction amount: %w: %w", err, ErrInvalidInput)
-		return storage.InsertInterestRuleParams{}, err
+		return storage.UpsertInterestRuleParams{}, err
 	}
 	if interestRate.IsNegative() {
 		err := fmt.Errorf("%w: negative amount", ErrInvalidInput)
-		return storage.InsertInterestRuleParams{}, err
+		return storage.UpsertInterestRuleParams{}, err
 	}
 	if !interestRate.Round(2).Equal(interestRate) {
 		err := fmt.Errorf("%w: too many decimal places", ErrInvalidInput)
-		return storage.InsertInterestRuleParams{}, err
+		return storage.UpsertInterestRuleParams{}, err
 	}
 
-	return storage.InsertInterestRuleParams{
+	return storage.UpsertInterestRuleParams{
 		Date:         date,
 		RuleID:       ruleID,
 		InterestRate: interestRate,

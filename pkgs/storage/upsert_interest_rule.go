@@ -6,6 +6,13 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type (
+	UpsertInterestRuleParams = InterestRule
+	DateString               = string
+)
+
+const DateFormatRuleMapKey = "20060102"
+
 func (i *InMemoryStrorage) UpsertInterestRule(params UpsertInterestRuleParams) (InterestRule, error) {
 	if params.InterestRate.LessThan(decimal.NewFromInt(0)) {
 		return InterestRule{}, errors.New("invalid input")
@@ -18,12 +25,18 @@ func (i *InMemoryStrorage) UpsertInterestRule(params UpsertInterestRuleParams) (
 	rules := make([]InterestRule, len(i.InterestRules))
 	copy(rules, i.InterestRules)
 
-	newRule := InterestRule{}
+	newRule := InterestRule{
+		Date:         params.Date,
+		InterestRate: params.InterestRate,
+		RuleID:       params.RuleID,
+	}
+
 	rules = append(rules, newRule)
 
-	ruleMap := make(map[RuleID]InterestRule)
+	ruleMap := make(map[DateString]InterestRule)
 	for _, rule := range rules {
-		ruleMap[rule.RuleID] = rule
+		key := rule.Date.Format(DateFormatRuleMapKey)
+		ruleMap[key] = rule
 	}
 
 	rules = make([]InterestRule, 0)
@@ -35,9 +48,3 @@ func (i *InMemoryStrorage) UpsertInterestRule(params UpsertInterestRuleParams) (
 
 	return newRule, nil
 }
-
-type UpsertInterestRuleParams struct {
-	InterestRate decimal.Decimal
-}
-
-type RuleID = string
