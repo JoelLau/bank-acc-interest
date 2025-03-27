@@ -1,8 +1,12 @@
 package cmd_test
 
 import (
+	appctx "bank-acc-interest/pkgs/app-ctx"
 	"bank-acc-interest/pkgs/cmd"
 	"bank-acc-interest/pkgs/storage"
+	"bytes"
+	"io"
+	"sync"
 	"testing"
 	"time"
 
@@ -10,6 +14,46 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestInpuxTransactionTest(t *testing.T) {
+	t.Parallel()
+
+	// NOTE: sleep for short duration so that app.Run() can write to buffer
+	inputReader, inputWriter := io.Pipe()
+
+	// NOTE: remember to run .Reset() after reading
+	var outBuf bytes.Buffer
+
+	store := storage.NewInMemoryStorage()
+	require.Len(t, store.InterestRules, 0)
+
+	appCtx := appctx.NewAppCtx(inputReader, &outBuf, store)
+	inputTxCmd := cmd.InputTransactions{AppCtx: appCtx}
+
+	var wg sync.WaitGroup
+	var err error
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		inputTxCmd.Execute()
+	}()
+
+	const msgPrompt = `Please enter transaction details in <Date> <Account> <Type> <Amount> format
+(or enter blank to go back to main menu):`
+
+	stutter()
+	require.Contains(t, outBuf.String(), msgPrompt)
+	outBuf.Reset()
+
+	stutter()
+	_, err = inputWriter.Write([]byte("20230626 AC001 D 100.00\n"))
+	require.NoError(t, err)
+
+	stutter()
+	require.Contains(t, outBuf.String(), "Account: AC001\n| Date     | Txn Id      | Type | Amount |")
+	outBuf.Reset()
+}
 
 func TestNewTransactionFromString(t *testing.T) {
 	t.Parallel()

@@ -78,30 +78,12 @@ func TestPrintTable(t *testing.T) {
 
 	time.Sleep(10 * time.Millisecond)
 
-	colDef := []appctx.ColDef{
-		{
-			Header: "Date",
-			Align:  appctx.ColumnAlignLeft,
-		},
-		{
-			Header: "Txn Id",
-			Align:  appctx.ColumnAlignLeft,
-		},
-		{
-			Header: "Type",
-			Align:  appctx.ColumnAlignLeft,
-		},
-		{
-			Header: "Amount",
-			Align:  appctx.ColumnAlignRight,
-		},
-	}
-
-	data := [][]string{
-		{"20230505", "20230505-01", "D", "20.00"},
-	}
-
-	app.PrintTable(colDef, data)
+	app.PrintTable([]appctx.ColDef{
+		{Header: "Date", Align: appctx.ColumnAlignLeft},
+		{Header: "Txn Id", Align: appctx.ColumnAlignLeft},
+		{Header: "Type", Align: appctx.ColumnAlignLeft},
+		{Header: "Amount", Align: appctx.ColumnAlignRight},
+	}, [][]string{{"20230505", "20230505-01", "D", "20.00"}})
 
 	expect := `| Date     | Txn Id      | Type | Amount |
 | 20230505 | 20230505-01 | D    |  20.00 |`

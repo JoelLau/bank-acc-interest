@@ -11,15 +11,15 @@ type (
 	DateString               = string
 )
 
-const DateFormatRuleMapKey = "20060102"
+var ErrInvalidInput = errors.New("invalid input")
 
 func (i *InMemoryStrorage) UpsertInterestRule(params UpsertInterestRuleParams) (InterestRule, error) {
 	if params.InterestRate.LessThan(decimal.NewFromInt(0)) {
-		return InterestRule{}, errors.New("invalid input")
+		return InterestRule{}, ErrInvalidInput
 	}
 
 	if params.InterestRate.GreaterThan(decimal.NewFromInt(100)) {
-		return InterestRule{}, errors.New("invalid input")
+		return InterestRule{}, ErrInvalidInput
 	}
 
 	rules := make([]InterestRule, len(i.InterestRules))

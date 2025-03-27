@@ -110,6 +110,18 @@ func TestParseUpsertInterestRuleParams(t *testing.T) {
 			err:    cmd.ErrInvalidInput,
 		},
 		{
+			name:   "Invalid Rate",
+			given:  "20230615 RULE03 asdf",
+			expect: storage.InterestRule{},
+			err:    cmd.ErrInvalidInput,
+		},
+		{
+			name:   "Rate must be > 0",
+			given:  "20230615 RULE03 -0.01",
+			expect: storage.InterestRule{},
+			err:    cmd.ErrInvalidInput,
+		},
+		{
 			name:   "Missing Fields",
 			given:  "20230615 2.20",
 			expect: storage.InterestRule{},

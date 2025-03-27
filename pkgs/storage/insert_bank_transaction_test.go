@@ -34,6 +34,20 @@ func TestInsertBankTransaction(t *testing.T) {
 		require.Equal(t, given.Type, have.Type)
 		require.True(t, decimal.NewFromInt(100).Equal(have.Amount))
 		require.True(t, given.Date.Equal(have.Date))
+
+		have, err = store.InsertBankTransaction(given)
+		require.NoError(t, err)
+
+		account, ok = store.Accounts[given.AccountID]
+		require.NotNil(t, account)
+		require.True(t, ok)
+		require.Len(t, store.Accounts[given.AccountID].Transactions, 2)
+
+		require.Equal(t, "20230626-02", have.ID)
+		require.Equal(t, given.Type, have.Type)
+		require.True(t, decimal.NewFromInt(100).Equal(have.Amount))
+		require.True(t, given.Date.Equal(have.Date))
+
 	})
 
 	t.Run("2 decimal places", func(t *testing.T) {

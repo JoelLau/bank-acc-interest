@@ -4,6 +4,7 @@ import (
 	appctx "bank-acc-interest/pkgs/app-ctx"
 	"bank-acc-interest/pkgs/storage"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
@@ -44,6 +45,7 @@ func (c *InputTransactions) Execute() {
 
 			_, err = c.Storage.InsertBankTransaction(tx)
 			if err != nil {
+				slog.Error(err.Error())
 				c.Println("could not append bank transaction record\n")
 				continue
 			}
