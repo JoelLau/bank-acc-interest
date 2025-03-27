@@ -18,6 +18,13 @@ var _ Command = &InputTransactions{}
 
 const MsgInputTxPrompt = "Please enter transaction details in <Date> <Account> <Type> <Amount> format\n(or enter blank to go back to main menu):"
 
+var TxColDef = []appctx.ColDef{
+	{Header: "Date", Align: appctx.ColumnAlignLeft},
+	{Header: "Txn Id", Align: appctx.ColumnAlignLeft},
+	{Header: "Type", Align: appctx.ColumnAlignLeft},
+	{Header: "Amount", Align: appctx.ColumnAlignRight},
+}
+
 func (c *InputTransactions) Execute() {
 
 	for keepLooping := true; keepLooping; {
@@ -67,25 +74,6 @@ func (c *InputTransactions) Execute() {
 	}
 
 	return
-}
-
-var TxColDef = []appctx.ColDef{
-	{
-		Header: "Date",
-		Align:  appctx.ColumnAlignLeft,
-	},
-	{
-		Header: "Txn Id",
-		Align:  appctx.ColumnAlignLeft,
-	},
-	{
-		Header: "Type",
-		Align:  appctx.ColumnAlignLeft,
-	},
-	{
-		Header: "Amount",
-		Align:  appctx.ColumnAlignRight,
-	},
 }
 
 // Expects a string in "<Date> <Account> <Type> <Amount>" format

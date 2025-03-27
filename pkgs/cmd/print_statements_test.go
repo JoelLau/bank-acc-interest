@@ -28,7 +28,6 @@ func TestPrintStatementsExec(t *testing.T) {
 	printStatementsCmd := cmd.PrintStatements{AppCtx: appCtx}
 
 	var wg sync.WaitGroup
-	// var err error
 
 	wg.Add(1)
 	go func() {

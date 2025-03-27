@@ -66,7 +66,7 @@ func TestE2EIDefineInterestRule(t *testing.T) {
 	wg.Wait()
 }
 
-func TestNewInterestRuleFromString(t *testing.T) {
+func TestParseUpsertInterestRuleParams(t *testing.T) {
 	t.Parallel()
 
 	for _, tt := range []struct {
